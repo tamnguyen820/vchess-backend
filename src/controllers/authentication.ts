@@ -67,7 +67,6 @@ export const login = async (req: express.Request, res: express.Response) => {
     await user.save();
 
     res.cookie(process.env.TOKEN_NAME, user.authentication.sessionToken, {
-      domain: process.env.DOMAIN || "localhost",
       path: "/",
     });
 
@@ -81,8 +80,8 @@ export const login = async (req: express.Request, res: express.Response) => {
 export const logout = async (req: express.Request, res: express.Response) => {
   try {
     console.log("TOKEN_NAME: " + process.env.TOKEN_NAME);
-    console.log("Req cookies");
-    console.log(req.cookies);
+    console.log("Req");
+    console.log(req);
 
     const sessionToken = req.cookies[process.env.TOKEN_NAME];
     if (!sessionToken) {
