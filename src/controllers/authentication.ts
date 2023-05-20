@@ -6,7 +6,6 @@ import {
   getUserBySessionToken,
 } from "../db/users";
 import { getHash, random } from "../helpers";
-import { get } from "lodash";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -68,7 +67,7 @@ export const login = async (req: express.Request, res: express.Response) => {
     await user.save();
 
     res.cookie(process.env.TOKEN_NAME, user.authentication.sessionToken, {
-      domain: "localhost",
+      domain: process.env.DOMAIN || "localhost",
       path: "/",
     });
 
