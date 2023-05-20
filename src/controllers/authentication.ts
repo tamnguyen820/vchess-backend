@@ -79,10 +79,6 @@ export const login = async (req: express.Request, res: express.Response) => {
 
 export const logout = async (req: express.Request, res: express.Response) => {
   try {
-    console.log("TOKEN_NAME: " + process.env.TOKEN_NAME);
-    console.log("Req");
-    console.log(req);
-
     const sessionToken = req.cookies[process.env.TOKEN_NAME];
     if (!sessionToken) {
       throw new Error("No session token in cookies");
