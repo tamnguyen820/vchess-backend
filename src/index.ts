@@ -23,8 +23,9 @@ app.use(bodyParser.json());
 
 const server = http.createServer(app);
 
-server.listen(process.env.PORT, () => {
-  console.log(`Server on http://localhost:${process.env.PORT}/`);
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
 
 mongoose.Promise = Promise;
