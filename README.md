@@ -1,6 +1,6 @@
 ## To run the application
 
 ```
-npm i
+npm install
 npm start
 ```
