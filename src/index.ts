@@ -28,6 +28,7 @@ server.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
 
+mongoose.set("strictQuery", true);
 mongoose.Promise = Promise;
 mongoose.connect(process.env.MONGODB_URL);
 mongoose.connection.on("error", (err: Error) => console.log(err));
