@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 
 const server = http.createServer(app);
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 server.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
