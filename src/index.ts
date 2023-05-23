@@ -7,6 +7,8 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import http from "http";
 import router from "./router";
+import { Server } from "socket.io";
+import socket from "./socket";
 
 dotenv.config();
 
@@ -21,11 +23,18 @@ app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
 
-const server = http.createServer(app);
+const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    credentials: true,
+  },
+});
 
 const PORT = process.env.PORT;
-server.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
+  socket({ io });
 });
 
 mongoose.set("strictQuery", true);
