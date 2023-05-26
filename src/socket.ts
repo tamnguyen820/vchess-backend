@@ -13,9 +13,7 @@ const EVENTS = {
 
   // Game
   move: "move",
-  drawOffer: "drawOffer",
-  acceptDrawOffer: "acceptDrawOffer",
-  resign: "resign",
+  gameDecision: "gameDecision",
 };
 
 function socket({ io }: { io: Server }) {
