@@ -14,14 +14,16 @@ dotenv.config();
 
 const app = express();
 
+app.use(compression());
+app.use(cookieParser(process.env.SECRET));
+app.use(bodyParser.json());
 app.use(
   cors({
     credentials: true,
+    origin: process.env.FRONTEND_URL,
+    exposedHeaders: ["set-cookie"],
   })
 );
-app.use(compression());
-app.use(cookieParser());
-app.use(bodyParser.json());
 
 const httpServer = http.createServer(app);
 
