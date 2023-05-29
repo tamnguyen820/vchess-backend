@@ -7,14 +7,17 @@ const EVENTS = {
   disconnect: "disconnect",
   message: "message",
 
-  // Room
+  // Match-making
   createRoom: "createRoom",
   joinRoom: "joinRoom",
+  joinQueue: "joinQueue",
 
   // Game
   move: "move",
   gameDecision: "gameDecision",
 };
+
+const QUEUE_NAME = "QUEUE";
 
 function socket({ io }: { io: Server }) {
   console.log("Sockets enabled");
@@ -40,6 +43,27 @@ function socket({ io }: { io: Server }) {
           EVENTS.message,
           `Socket ${socket.id} joined room ${roomId}`
         );
+      }
+    });
+
+    socket.on(EVENTS.joinQueue, () => {
+      socket.join(QUEUE_NAME);
+      const clients = io.sockets.adapter.rooms.get(QUEUE_NAME);
+      if (clients.size >= 2) {
+        let playerCount = 0;
+        const roomId = nanoid();
+        // Connect 2 random clients
+        for (const socketId of clients) {
+          const clientSocket = io.sockets.sockets.get(socketId);
+          clientSocket.leave(QUEUE_NAME);
+          clientSocket.join(roomId);
+          clientSocket.broadcast.emit(
+            EVENTS.message,
+            `Socket ${socketId} joined room ${roomId}`
+          );
+          playerCount++;
+          if (playerCount === 2) break;
+        }
       }
     });
 
