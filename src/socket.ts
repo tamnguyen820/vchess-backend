@@ -56,7 +56,7 @@ function socket({ io }: { io: Server }) {
       const clients = io.sockets.adapter.rooms.get(QUEUE_NAME);
       if (clients.size >= 2) {
         let playerCount = 0;
-        const colors = ["w", "b"];
+        const order = Math.random() < 0.5 ? "wb" : "bw";
         const roomId = nanoid();
         // Connect 2 random clients
         for (const socketId of clients) {
@@ -65,7 +65,7 @@ function socket({ io }: { io: Server }) {
           clientSocket.join(roomId);
           clientSocket.emit(EVENTS.CLIENT.joinedRoom, {
             roomId: roomId,
-            color: colors[playerCount],
+            color: order[playerCount],
           });
           playerCount++;
           if (playerCount === 2) break;
