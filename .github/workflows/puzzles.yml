@@ -1,0 +1,12 @@
+name: Populate Puzzles in DB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  populate-puzzles:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print test
+        run: |
+          echo "OK"
