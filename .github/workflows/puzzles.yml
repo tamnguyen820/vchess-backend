@@ -7,7 +7,7 @@ jobs:
   populate-puzzles:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Download Lichess puzzle dataset
@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: pip install pandas pymongo
 
-      - name: Execute Python Script
+      - name: Execute Python script
         env:
           MONGODB_URL: ${{ secrets.MONGODB_URL }}
           MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
