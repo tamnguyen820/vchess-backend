@@ -7,6 +7,9 @@ jobs:
   populate-puzzles:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
       - name: Download Lichess puzzle dataset
         run: |
           wget https://database.lichess.org/lichess_db_puzzle.csv.zst
