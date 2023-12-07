@@ -8,6 +8,9 @@ collection = db[os.environ['MONGODB_PUZZLE_COLLECTION_NAME']]
 
 df = pd.read_csv('lichess_db_puzzle.csv')
 
-selected_puzzles = df.head(5)
-
+# Select 1000 random puzzles
+df_shuffled = df.sample(frac=1).reset_index(drop=True)
+selected_puzzles = df_shuffled.head(1000)
 collection.insert_many(selected_puzzles.to_dict(orient='records'))
+
+client.close()
