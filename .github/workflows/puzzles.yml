@@ -29,4 +29,5 @@ jobs:
           MONGODB_URL: ${{ secrets.MONGODB_URL }}
           MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
           MONGODB_PUZZLE_COLLECTION_NAME: ${{ secrets.MONGODB_PUZZLE_COLLECTION_NAME }}
+          NUMBER_OF_PUZZLES: ${{ vars.NUMBER_OF_PUZZLES }}
         run: python scripts/insert_puzzles.py
