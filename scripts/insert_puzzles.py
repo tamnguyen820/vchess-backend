@@ -8,9 +8,9 @@ def create_backup(client, db_name, old_collection_name, backup_collection_name):
     # Check if the old collection exists before attempting to rename it
     if old_collection_name in db.list_collection_names():
         db[old_collection_name].rename(backup_collection_name)
-        print(f"Backup created: {old_collection_name} -> {backup_collection_name}")
+        print(f"Backup for previous puzzles collection created.")
     else:
-        print(f"The old collection '{old_collection_name}' doesn't exist. No backup created.")
+        print(f"The old puzzles collection doesn't exist. No backup created.")
 
 
 def insert_puzzles(collection, df, number_of_puzzles):
