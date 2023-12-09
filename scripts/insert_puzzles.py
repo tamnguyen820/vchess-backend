@@ -22,10 +22,12 @@ def insert_puzzles(collection, df, number_of_puzzles):
     print("Done!")
 
 def main():
+    client = MongoClient()
+    
     try:
         client = MongoClient(os.environ['MONGODB_URL'])
         db_name = os.environ['MONGODB_DB_NAME']
-        old_collection_name = os.environ['MONGODB_PUZZLE_COLLECTION_NAME']
+        old_collection_name = 'lichess_puzzles'
         backup_collection_name = old_collection_name + '_backup'
 
         create_backup(client, db_name, old_collection_name, backup_collection_name)
@@ -37,8 +39,8 @@ def main():
         except FileNotFoundError as e:
             print(f"CSV file not found: {e}")
             return
-
-        number_of_puzzles = int(os.environ.get('NUMBER_OF_PUZZLES', 1000))
+        
+        number_of_puzzles = int(os.environ.get('NUMBER_OF_PUZZLES', 100000))
         insert_puzzles(collection, df, number_of_puzzles)
 
     except Exception as e:
