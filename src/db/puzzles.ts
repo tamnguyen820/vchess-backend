@@ -20,7 +20,7 @@ const PuzzleSchema = new mongoose.Schema(
 export const PuzzleModel = mongoose.model("Puzzle", PuzzleSchema);
 
 // Puzzle Actions
-export const getPuzzles = () => PuzzleModel.find();
+export const getAllPuzzles = () => PuzzleModel.find();
 
 export const getRandomPuzzle = async () => {
   const randomPuzzle = await PuzzleModel.aggregate([{ $sample: { size: 1 } }]);
