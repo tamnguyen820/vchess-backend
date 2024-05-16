@@ -1,15 +1,11 @@
 import express from "express";
-import {
-  getAllPuzzles,
-  getRandomPuzzle,
-  getPuzzleByPuzzleId,
-} from "../db/puzzles";
+import { getRandomPuzzles, getPuzzleByPuzzleId } from "../db/puzzles";
 import { redisClient } from "../helpers";
 
 const CACHE_KEY = "all_puzzles";
 
 const refreshCache = async () => {
-  const puzzles = await getAllPuzzles(); // Fetch all puzzles
+  const puzzles = await getRandomPuzzles(1000);
   await redisClient.setEx(CACHE_KEY, 3600, JSON.stringify(puzzles)); // Cache for 1 hour
 };
 
@@ -36,7 +32,7 @@ export const getARandomPuzzle = async (
     }
 
     // If all fails, just fetch a random puzzle from the database
-    const randomPuzzle = await getRandomPuzzle();
+    const randomPuzzle = await getRandomPuzzles(1);
     return res.status(200).json(randomPuzzle);
   } catch (error) {
     console.log(error);
