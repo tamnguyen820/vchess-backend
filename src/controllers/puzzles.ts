@@ -2,11 +2,17 @@ import express from "express";
 import { getRandomPuzzles, getPuzzleByPuzzleId } from "../db/puzzles";
 import { redisClient } from "../helpers";
 
-const CACHE_KEY = "all_puzzles";
+const NUM_PUZZLES = "num_puzzles";
 
 const refreshCache = async () => {
   const puzzles = await getRandomPuzzles(1000);
-  await redisClient.setEx(CACHE_KEY, 3600, JSON.stringify(puzzles)); // Cache for 1 hour
+  const multi = redisClient.multi();
+  puzzles.map((puzzle, idx) => {
+    multi.set(`puzzle:${idx}`, JSON.stringify(puzzle));
+  });
+
+  multi.set(NUM_PUZZLES, puzzles.length);
+  await multi.exec();
 };
 
 export const getARandomPuzzle = async (
@@ -14,21 +20,33 @@ export const getARandomPuzzle = async (
   res: express.Response
 ) => {
   try {
-    const cacheData = await redisClient.get(CACHE_KEY);
+    const cacheData = await redisClient.get(NUM_PUZZLES);
 
     if (cacheData) {
-      const puzzles = JSON.parse(cacheData);
-      const randomPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
-      return res.status(200).json(randomPuzzle);
+      const randomPuzzleIdx = Math.floor(Math.random() * parseInt(cacheData));
+      const randomPuzzleData = await redisClient.get(
+        `puzzle:${randomPuzzleIdx}`
+      );
+      if (randomPuzzleData) {
+        const randomPuzzle = JSON.parse(randomPuzzleData);
+        return res.status(200).json(randomPuzzle);
+      }
     }
 
     // If cache is empty, refresh it and try again
     await refreshCache();
-    const refreshedCacheData = await redisClient.get(CACHE_KEY);
+    const refreshedCacheData = await redisClient.get(NUM_PUZZLES);
     if (refreshedCacheData) {
-      const puzzles = JSON.parse(refreshedCacheData);
-      const randomPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
-      return res.status(200).json(randomPuzzle);
+      const randomPuzzleIdx = Math.floor(
+        Math.random() * parseInt(refreshedCacheData)
+      );
+      const randomPuzzleData = await redisClient.get(
+        `puzzle:${randomPuzzleIdx}`
+      );
+      if (randomPuzzleData) {
+        const randomPuzzle = JSON.parse(randomPuzzleData);
+        return res.status(200).json(randomPuzzle);
+      }
     }
 
     // If all fails, just fetch a random puzzle from the database
