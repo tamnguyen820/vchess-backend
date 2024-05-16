@@ -1,18 +1,40 @@
 import express from "express";
-import { getRandomPuzzles, getPuzzleByPuzzleId } from "../db/puzzles";
+import { getPuzzleByPuzzleId, getRandomPuzzles } from "../db/puzzles";
 import { redisClient } from "../helpers";
 
-const NUM_PUZZLES = "num_puzzles";
+const PUZZLE_IDS_KEY = "puzzle_ids";
 
 const refreshCache = async () => {
-  const puzzles = await getRandomPuzzles(1000);
-  const multi = redisClient.multi();
-  puzzles.map((puzzle, idx) => {
-    multi.set(`puzzle:${idx}`, JSON.stringify(puzzle));
-  });
+  try {
+    const puzzles = await getRandomPuzzles(1000);
+    const multi = redisClient.multi();
 
-  multi.set(NUM_PUZZLES, puzzles.length);
-  await multi.exec();
+    const puzzleIds = puzzles.map((puzzle) => {
+      const puzzleId = puzzle._id.toString();
+      multi.set(`puzzle:${puzzleId}`, JSON.stringify(puzzle));
+      return puzzleId;
+    });
+
+    multi.set(PUZZLE_IDS_KEY, JSON.stringify(puzzleIds));
+    await multi.exec();
+  } catch (error) {
+    console.error("Error refreshing cache:", error);
+  }
+};
+
+const getRandomPuzzleFromCache = async () => {
+  const cacheData = await redisClient.get(PUZZLE_IDS_KEY);
+
+  if (cacheData) {
+    const puzzleIds = JSON.parse(cacheData);
+    const randomPuzzleId =
+      puzzleIds[Math.floor(Math.random() * puzzleIds.length)];
+    const randomPuzzleData = await redisClient.get(`puzzle:${randomPuzzleId}`);
+    if (randomPuzzleData) {
+      return JSON.parse(randomPuzzleData);
+    }
+  }
+  return null;
 };
 
 export const getARandomPuzzle = async (
@@ -20,38 +42,20 @@ export const getARandomPuzzle = async (
   res: express.Response
 ) => {
   try {
-    const cacheData = await redisClient.get(NUM_PUZZLES);
+    let randomPuzzle = await getRandomPuzzleFromCache();
 
-    if (cacheData) {
-      const randomPuzzleIdx = Math.floor(Math.random() * parseInt(cacheData));
-      const randomPuzzleData = await redisClient.get(
-        `puzzle:${randomPuzzleIdx}`
-      );
-      if (randomPuzzleData) {
-        const randomPuzzle = JSON.parse(randomPuzzleData);
-        return res.status(200).json(randomPuzzle);
-      }
+    if (!randomPuzzle) {
+      await refreshCache();
+      randomPuzzle = await getRandomPuzzleFromCache();
     }
 
-    // If cache is empty, refresh it and try again
-    await refreshCache();
-    const refreshedCacheData = await redisClient.get(NUM_PUZZLES);
-    if (refreshedCacheData) {
-      const randomPuzzleIdx = Math.floor(
-        Math.random() * parseInt(refreshedCacheData)
-      );
-      const randomPuzzleData = await redisClient.get(
-        `puzzle:${randomPuzzleIdx}`
-      );
-      if (randomPuzzleData) {
-        const randomPuzzle = JSON.parse(randomPuzzleData);
-        return res.status(200).json(randomPuzzle);
-      }
+    if (randomPuzzle) {
+      return res.status(200).json(randomPuzzle);
     }
 
-    // If all fails, just fetch a random puzzle from the database
-    const randomPuzzle = await getRandomPuzzles(1);
-    return res.status(200).json(randomPuzzle);
+    // If all else fails, fetch a random puzzle directly from the database
+    const [dbRandomPuzzle] = await getRandomPuzzles(1);
+    return res.status(200).json(dbRandomPuzzle);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
@@ -64,10 +68,18 @@ export const getPuzzleById = async (
 ) => {
   try {
     const { id } = req.params;
+    const cachedPuzzle = await redisClient.get(`puzzle:${id}`);
+    if (cachedPuzzle) {
+      return res.status(200).json(JSON.parse(cachedPuzzle));
+    }
+    // If not in cache, fetch from the database
     const puzzle = await getPuzzleByPuzzleId(id);
     if (!puzzle) {
       return res.sendStatus(400);
     }
+
+    // Cache the puzzle for future requests
+    await redisClient.set(`puzzle:${id}`, JSON.stringify(puzzle));
     return res.status(200).json(puzzle);
   } catch (error) {
     console.log(error);
